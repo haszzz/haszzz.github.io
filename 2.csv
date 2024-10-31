@@ -1,15 +1,15 @@
 ﻿#separator:comma
 #html:true
-#tags column:5
-#columns:Learnable,Definition,Audio,Images,Level tags
-"كِتابٌ","livre","[sound:ataalamou-larabia-2_5718209c_246755134_200504_0552_46.mp3]",<img src='ataalamou-larabia-2_5718209c_246755134_200507_0548_29.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
-"كَريمٌ","noble","[sound:ataalamou-larabia-2_5718209c_246755135_200504_0552_51.mp3]",<img src='ataalamou-larabia-2_5718209c_246755135_200507_0600_50.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
-"عَدُوٌّ","ennemi","[sound:ataalamou-larabia-2_5718209c_246755136_200504_0552_55.mp3]",<img src='ataalamou-larabia-2_5718209c_246755136_200507_0559_25.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
-"رَجيمٌ","lapidé, maudit","[sound:ataalamou-larabia-2_5718209c_246755137_200504_0552_59.mp3]",<img src='ataalamou-larabia-2_5718209c_246755137_200507_0559_35.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
-"رَبٌّ","seigneur","[sound:ataalamou-larabia-2_5718209c_246755138_200504_0553_07.mp3]",<img src='ataalamou-larabia-2_5718209c_246755138_200507_0559_48.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
-"سَأَلَ","demander","[sound:ataalamou-larabia-2_5718209c_246755139_200504_0553_11.mp3]",<img src='ataalamou-larabia-2_5718209c_246755139_200507_0600_00.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
-"إِلـهٌ","dieu","[sound:ataalamou-larabia-2_5718209c_246755140_200504_0553_15.mp3]",<img src='ataalamou-larabia-2_5718209c_246755140_200507_0600_12.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
-"إِنْسانٌ","être humain","[sound:ataalamou-larabia-2_5718209c_246755141_200504_0553_20.mp3]",<img src='ataalamou-larabia-2_5718209c_246755141_200507_0600_21.png'>,"Ataalamou_l'arabia_(2)::01_Leçon_1"
+#tags column:2
+#columns:Learnable,Definition,Audio,Level tags
+"كِتابٌ","livre","[sound:ataalamou-larabia-2_5718209c_246755134_200504_0552_46.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
+"كَريمٌ","noble","[sound:ataalamou-larabia-2_5718209c_246755135_200504_0552_51.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
+"عَدُوٌّ","ennemi","[sound:ataalamou-larabia-2_5718209c_246755136_200504_0552_55.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
+"رَجيمٌ","lapidé, maudit","[sound:ataalamou-larabia-2_5718209c_246755137_200504_0552_59.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
+"رَبٌّ","seigneur","[sound:ataalamou-larabia-2_5718209c_246755138_200504_0553_07.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
+"سَأَلَ","demander","[sound:ataalamou-larabia-2_5718209c_246755139_200504_0553_11.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
+"إِلـهٌ","dieu","[sound:ataalamou-larabia-2_5718209c_246755140_200504_0553_15.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
+"إِنْسانٌ","être humain","[sound:ataalamou-larabia-2_5718209c_246755141_200504_0553_20.mp3]","Ataalamou_l'arabia_(2)::01_Leçon_1"
 "أَصْبَحَ","devenir","[sound:ataalamou-larabia-2_5718209c_246755399_200504_0553_28.mp3]",,"Ataalamou_l'arabia_(2)::02_Leçon_2"
 "كَلامٌ","parole","[sound:ataalamou-larabia-2_5718209c_246755400_200504_0553_33.mp3]",,"Ataalamou_l'arabia_(2)::02_Leçon_2"
 "حَرْفٌ","lettre","[sound:ataalamou-larabia-2_5718209c_246755401_200504_0553_45.mp3]",,"Ataalamou_l'arabia_(2)::02_Leçon_2"
