@@ -6,17 +6,24 @@ let verifiedWords = [];
 let currentEditingLine = null;
 let currentAddAfterLine = null;
 
+// Tinder mode
+let tinderMode = false;
+let tinderCurrentIndex = 0;
+let tinderWords = [];
+
 const csvSelect = document.getElementById('csv-select');
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
 const tableauxView = document.getElementById('tableaux-view');
 const wordsView = document.getElementById('words-view');
+const tinderView = document.getElementById('tinder-view');
 const tableauxList = document.getElementById('tableaux-list');
 const wordsTbody = document.getElementById('words-tbody');
 const tableauTitle = document.getElementById('tableau-title');
 const backToTableaux = document.getElementById('back-to-tableaux');
 const verifyAllTableau = document.getElementById('verify-all-tableau');
 const saveChanges = document.getElementById('save-changes');
+const tinderModeBtn = document.getElementById('tinder-mode-btn');
 const audioPlayer = document.getElementById('audio-player');
 
 const editModal = document.getElementById('edit-modal');
@@ -30,6 +37,18 @@ csvSelect.addEventListener('change', handleFileSelect);
 backToTableaux.addEventListener('click', showTableauxView);
 verifyAllTableau.addEventListener('click', verifyAllWordsInTableau);
 saveChanges.addEventListener('click', saveProgress);
+tinderModeBtn.addEventListener('click', enterTinderMode);
+
+// Tinder mode event listeners
+document.getElementById('exit-tinder').addEventListener('click', exitTinderMode);
+document.getElementById('tinder-accept').addEventListener('click', tinderAccept);
+document.getElementById('tinder-skip').addEventListener('click', tinderSkip);
+document.getElementById('tinder-edit').addEventListener('click', tinderEdit);
+document.getElementById('card-play-audio').addEventListener('click', tinderPlayAudio);
+document.getElementById('card-regenerate-audio').addEventListener('click', tinderRegenerateAudio);
+
+// Keyboard support for tinder mode
+document.addEventListener('keydown', handleTinderKeyboard);
 
 document.querySelectorAll('.close-modal').forEach(btn => {
     btn.addEventListener('click', closeModals);
@@ -317,8 +336,22 @@ async function confirmEdit() {
             tableauEntry.french = result.french;
         }
 
+        // Update in tinder mode if active
+        if (tinderMode) {
+            const tinderWord = tinderWords[tinderCurrentIndex];
+            if (tinderWord && tinderWord.lineNumber === currentEditingLine) {
+                tinderWord.arabic = result.arabic;
+                tinderWord.french = result.french;
+            }
+        }
+
         closeModals();
-        showWordsView(currentTableau);
+
+        if (tinderMode) {
+            showTinderCard();
+        } else {
+            showWordsView(currentTableau);
+        }
 
         alert('Entrée modifiée avec succès!');
     } catch (err) {
@@ -443,3 +476,354 @@ function showError(message) {
 function hideError() {
     error.classList.add('hidden');
 }
+
+// ===== TINDER MODE =====
+
+function enterTinderMode() {
+    if (!currentTableau || !currentTableau.words.length) return;
+
+    tinderMode = true;
+    tinderWords = [...currentTableau.words];
+    tinderCurrentIndex = 0;
+
+    wordsView.classList.add('hidden');
+    tinderView.classList.remove('hidden');
+
+    document.getElementById('tinder-title').textContent = `Mode Rapide - Tableau ${currentTableau.tableau}`;
+
+    showTinderCard();
+}
+
+function exitTinderMode() {
+    tinderMode = false;
+    tinderView.classList.add('hidden');
+
+    if (currentTableau) {
+        showWordsView(currentTableau);
+    }
+}
+
+function showTinderCard() {
+    if (tinderCurrentIndex >= tinderWords.length) {
+        alert('Tous les mots du tableau ont été vérifiés!');
+        exitTinderMode();
+        return;
+    }
+
+    const word = tinderWords[tinderCurrentIndex];
+    const niveau = currentFile.replace('.csv', '');
+
+    document.getElementById('card-arabic').textContent = word.arabic;
+    document.getElementById('card-french').textContent = word.french;
+    document.getElementById('tinder-counter').textContent =
+        `${tinderCurrentIndex + 1} / ${tinderWords.length}`;
+
+    // Remove any animation classes
+    const card = document.getElementById('tinder-card');
+    card.classList.remove('swipe-left', 'swipe-right');
+
+    // Auto-play audio
+    setTimeout(() => {
+        playAudio(niveau, word.audio);
+    }, 300);
+}
+
+function tinderAccept() {
+    const word = tinderWords[tinderCurrentIndex];
+
+    // Mark as verified
+    word.verified = true;
+    if (!verifiedWords.includes(word.lineNumber)) {
+        verifiedWords.push(word.lineNumber);
+    }
+
+    // Update in allEntries
+    const entry = allEntries.find(e => e.lineNumber === word.lineNumber);
+    if (entry) {
+        entry.verified = true;
+    }
+
+    // Animate card
+    const card = document.getElementById('tinder-card');
+    card.classList.add('swipe-right');
+
+    setTimeout(() => {
+        tinderCurrentIndex++;
+        showTinderCard();
+    }, 300);
+}
+
+function tinderSkip() {
+    // Don't mark as verified, just skip
+    const card = document.getElementById('tinder-card');
+    card.classList.add('swipe-right');
+
+    setTimeout(() => {
+        tinderCurrentIndex++;
+        showTinderCard();
+    }, 300);
+}
+
+function tinderEdit() {
+    const word = tinderWords[tinderCurrentIndex];
+    currentEditingLine = word.lineNumber;
+
+    editArabic.value = word.arabic;
+    editFrench.value = word.french;
+
+    editModal.classList.remove('hidden');
+}
+
+function tinderPlayAudio() {
+    const word = tinderWords[tinderCurrentIndex];
+    const niveau = currentFile.replace('.csv', '');
+    playAudio(niveau, word.audio);
+}
+
+async function tinderRegenerateAudio() {
+    const word = tinderWords[tinderCurrentIndex];
+    const niveau = currentFile.replace('.csv', '');
+
+    const btn = document.getElementById('card-regenerate-audio');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+
+    try {
+        const response = await fetch('/api/audio/regenerate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: currentFile,
+                lineNumber: word.lineNumber,
+                arabicText: word.arabic,
+                niveau
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            word.audio = result.audioFile;
+
+            const entry = allEntries.find(e => e.lineNumber === word.lineNumber);
+            if (entry) {
+                entry.audio = result.audioFile;
+            }
+
+            setTimeout(() => {
+                playAudio(niveau, result.audioFile);
+            }, 300);
+        }
+    } catch (err) {
+        showError(`Erreur: ${err.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+}
+
+function handleTinderKeyboard(e) {
+    if (!tinderMode || editModal.classList.contains('hidden') === false) return;
+
+    switch(e.key) {
+        case 'ArrowRight':
+            e.preventDefault();
+            tinderAccept();
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            tinderSkip();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            tinderEdit();
+            break;
+        case ' ':
+            e.preventDefault();
+            tinderPlayAudio();
+            break;
+    }
+}
+
+// ===== ARABIC KEYBOARD =====
+
+const arabicKeyboardLayout = {
+    letters: [
+        ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ'],
+        ['د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص'],
+        ['ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق'],
+        ['ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي'],
+        ['ء', 'آ', 'أ', 'ؤ', 'إ', 'ئ', 'ى', 'ة']
+    ],
+    diacritics: [
+        ['َ', 'ُ', 'ِ', 'ً', 'ٌ', 'ٍ', 'ْ', 'ّ', 'ـ']
+    ],
+    special: [
+        ['/', '،', '؛', '؟', ' ']
+    ]
+};
+
+let currentArabicInput = null;
+
+function createArabicKeyboard(containerId, inputId) {
+    const container = document.getElementById(containerId);
+    const input = document.getElementById(inputId);
+    currentArabicInput = input;
+
+    container.innerHTML = '';
+
+    // Letters section
+    const lettersSection = document.createElement('div');
+    lettersSection.className = 'keyboard-section';
+    lettersSection.innerHTML = '<div class="keyboard-section-title">حروف (Lettres)</div>';
+
+    arabicKeyboardLayout.letters.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'keyboard-row';
+
+        row.forEach(char => {
+            const btn = document.createElement('button');
+            btn.className = 'key-btn';
+            btn.textContent = char;
+            btn.type = 'button';
+            btn.onclick = () => insertChar(char, input);
+            rowDiv.appendChild(btn);
+        });
+
+        lettersSection.appendChild(rowDiv);
+    });
+
+    // Diacritics section
+    const diacriticsSection = document.createElement('div');
+    diacriticsSection.className = 'keyboard-section';
+    diacriticsSection.innerHTML = '<div class="keyboard-section-title">تشكيل (Diacritiques)</div>';
+
+    arabicKeyboardLayout.diacritics.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'keyboard-row';
+
+        row.forEach(char => {
+            const btn = document.createElement('button');
+            btn.className = 'key-btn diacritic';
+            btn.textContent = char;
+            btn.type = 'button';
+            btn.title = getDiacriticName(char);
+            btn.onclick = () => insertChar(char, input);
+            rowDiv.appendChild(btn);
+        });
+
+        diacriticsSection.appendChild(rowDiv);
+    });
+
+    // Special characters and actions
+    const specialSection = document.createElement('div');
+    specialSection.className = 'keyboard-section';
+    specialSection.innerHTML = '<div class="keyboard-section-title">رموز وإجراءات (Symboles et Actions)</div>';
+
+    const specialRow = document.createElement('div');
+    specialRow.className = 'keyboard-row';
+
+    arabicKeyboardLayout.special.forEach(char => {
+        const btn = document.createElement('button');
+        btn.className = 'key-btn special';
+        btn.textContent = char === ' ' ? 'مسافة' : char;
+        btn.type = 'button';
+        btn.onclick = () => insertChar(char, input);
+        specialRow.appendChild(btn);
+    });
+
+    // Backspace button
+    const backspaceBtn = document.createElement('button');
+    backspaceBtn.className = 'key-btn action';
+    backspaceBtn.textContent = '⌫ مسح';
+    backspaceBtn.type = 'button';
+    backspaceBtn.onclick = () => backspace(input);
+    specialRow.appendChild(backspaceBtn);
+
+    // Clear button
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'key-btn action';
+    clearBtn.textContent = '✕ مسح الكل';
+    clearBtn.type = 'button';
+    clearBtn.onclick = () => clearInput(input);
+    specialRow.appendChild(clearBtn);
+
+    specialSection.appendChild(specialRow);
+
+    container.appendChild(lettersSection);
+    container.appendChild(diacriticsSection);
+    container.appendChild(specialSection);
+}
+
+function insertChar(char, input) {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const text = input.value;
+
+    input.value = text.substring(0, start) + char + text.substring(end);
+    input.selectionStart = input.selectionEnd = start + char.length;
+    input.focus();
+}
+
+function backspace(input) {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const text = input.value;
+
+    if (start !== end) {
+        // Delete selection
+        input.value = text.substring(0, start) + text.substring(end);
+        input.selectionStart = input.selectionEnd = start;
+    } else if (start > 0) {
+        // Delete one character before cursor
+        input.value = text.substring(0, start - 1) + text.substring(start);
+        input.selectionStart = input.selectionEnd = start - 1;
+    }
+
+    input.focus();
+}
+
+function clearInput(input) {
+    input.value = '';
+    input.focus();
+}
+
+function getDiacriticName(char) {
+    const names = {
+        'َ': 'Fatha',
+        'ُ': 'Damma',
+        'ِ': 'Kasra',
+        'ً': 'Tanwin Fath',
+        'ٌ': 'Tanwin Damm',
+        'ٍ': 'Tanwin Kasr',
+        'ْ': 'Sukun',
+        'ّ': 'Shadda',
+        'ـ': 'Tatweel'
+    };
+    return names[char] || char;
+}
+
+// Initialize keyboards when modals open
+const originalEditEntry = editEntry;
+editEntry = function(lineNumber) {
+    originalEditEntry(lineNumber);
+    setTimeout(() => {
+        createArabicKeyboard('arabic-keyboard', 'edit-arabic');
+    }, 50);
+};
+
+const originalAddEntryAfter = addEntryAfter;
+addEntryAfter = function(lineNumber) {
+    originalAddEntryAfter(lineNumber);
+    setTimeout(() => {
+        createArabicKeyboard('arabic-keyboard-add', 'add-arabic');
+    }, 50);
+};
+
+const originalTinderEdit = tinderEdit;
+tinderEdit = function() {
+    originalTinderEdit();
+    setTimeout(() => {
+        createArabicKeyboard('arabic-keyboard', 'edit-arabic');
+    }, 50);
+};

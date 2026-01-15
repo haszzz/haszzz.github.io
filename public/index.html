@@ -41,6 +41,7 @@
                 <button id="back-to-tableaux" class="btn btn-secondary">← Retour aux tableaux</button>
                 <h2 id="tableau-title"></h2>
                 <div class="tableau-actions">
+                    <button id="tinder-mode-btn" class="btn btn-success">🔥 Mode Rapide</button>
                     <button id="verify-all-tableau" class="btn btn-success">✓ Marquer tout le tableau</button>
                     <button id="save-changes" class="btn btn-primary">💾 Sauvegarder</button>
                 </div>
@@ -61,10 +62,52 @@
                 </table>
             </div>
         </div>
+
+        <div id="tinder-view" class="hidden">
+            <div class="tinder-header">
+                <button id="exit-tinder" class="btn btn-secondary">← Retour</button>
+                <h2 id="tinder-title"></h2>
+                <div class="tinder-progress">
+                    <span id="tinder-counter"></span>
+                </div>
+            </div>
+
+            <div class="tinder-container">
+                <div id="tinder-card" class="tinder-card">
+                    <div class="card-content">
+                        <div class="card-arabic" id="card-arabic"></div>
+                        <div class="card-french" id="card-french"></div>
+                        <div class="card-audio-controls">
+                            <button class="icon-btn-large" id="card-play-audio" title="Écouter (Espace)">🔊</button>
+                            <button class="icon-btn-large" id="card-regenerate-audio" title="Régénérer">🔄</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tinder-actions">
+                    <button class="tinder-btn tinder-btn-reject" id="tinder-edit" title="Modifier (←)">
+                        ✏️ Modifier
+                    </button>
+                    <button class="tinder-btn tinder-btn-skip" id="tinder-skip" title="Passer (↓)">
+                        ⏭️ Passer
+                    </button>
+                    <button class="tinder-btn tinder-btn-accept" id="tinder-accept" title="Valider (→)">
+                        ✓ Valider
+                    </button>
+                </div>
+
+                <div class="keyboard-hints">
+                    <span>← Modifier</span>
+                    <span>Espace: Audio</span>
+                    <span>↓ Passer</span>
+                    <span>→ Valider</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="edit-modal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h3>Modifier l'entrée</h3>
                 <button class="close-modal">&times;</button>
@@ -72,8 +115,9 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="edit-arabic">Arabe :</label>
-                    <input type="text" id="edit-arabic" dir="rtl" class="form-control">
+                    <input type="text" id="edit-arabic" dir="rtl" class="form-control arabic-input">
                 </div>
+                <div id="arabic-keyboard" class="arabic-keyboard"></div>
                 <div class="form-group">
                     <label for="edit-french">Français :</label>
                     <input type="text" id="edit-french" class="form-control">
@@ -87,7 +131,7 @@
     </div>
 
     <div id="add-modal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h3>Ajouter un nouveau mot</h3>
                 <button class="close-modal">&times;</button>
@@ -95,8 +139,9 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="add-arabic">Arabe :</label>
-                    <input type="text" id="add-arabic" dir="rtl" class="form-control">
+                    <input type="text" id="add-arabic" dir="rtl" class="form-control arabic-input">
                 </div>
+                <div id="arabic-keyboard-add" class="arabic-keyboard"></div>
                 <div class="form-group">
                     <label for="add-french">Français :</label>
                     <input type="text" id="add-french" class="form-control">

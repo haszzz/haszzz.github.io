@@ -1,7 +1,6 @@
 ﻿#separator:comma
 #html:true
 #tags column:4
-#columns:Learnable,Definition,Audio,Level tags
 "إحسانٌ","bienfaisance","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129889990_200105_1508_26.mp3]","Qissas_an-nabiyîn_(4ème_année)::01_Tableau_88-89"
 "أَغاثَ/يُغيثُ","secourir","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129889991_200105_1537_50.mp3]","Qissas_an-nabiyîn_(4ème_année)::01_Tableau_88-89"
 "بَهيمَةٌ/بَهائِمُ","bête(s), animal(aux)","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129889992_200105_1538_05.mp3]","Qissas_an-nabiyîn_(4ème_année)::01_Tableau_88-89"
@@ -62,8 +61,8 @@
 "يَمٌّ","mer","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890181_200105_1704_40.mp3]","Qissas_an-nabiyîn_(4ème_année)::02_Tableau_90-91"
 "ابْتَسَمَ/يَبْتَسِمُ","sourire","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890315_200105_1714_23.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "اتَّخَذَ/يَتَّخِذُ","prendre","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890316_200105_1714_28.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
-"الْتَقَطَ/يَلْتَقِطُ","ramasser,recueillir","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890317_200105_1714_34.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
-"إلَيكَ","tiens, prends","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890318_200105_1714_44.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
+"الْتَقَطَ/يَلْتَقِطُ","ramasser,recueillir","[sound:generated_1768513992794_c203c5ba.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
+"إلَيكَ","tiens, prends","[sound:generated_1768514008534_fa31c35e.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "بَصَرٌ/أَبْصَارٌ","vue(s),regard(s)","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890319_200105_1714_59.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "فُتِحَ/يُفْتَحُ","être ouvert","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890319_200105_foutih_200105_1714_59.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "هَامَانُ","Haman","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890319_200105_haman_200105_1714_59.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
@@ -81,7 +80,7 @@
 "رَضاعَةٌ","allaitement","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890330_200105_1716_56.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "لَبَنٌ/أَلْبانٌ","lait(s)","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890331_200105_1717_40.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "لُعْبَةٌ","jouet","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890332_200105_1717_45.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
-"مُرْضِعٌ (ة)/مُرْضِعٌات/مَراضِعُ","nourrice(s)","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890333_200105_1717_50.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
+"مُرْضِعٌ(ة)/مُرْضِعات/مَراضِعُ","nourrice(s)","[sound:generated_1768515717412_880b477e.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "اقْتَتَلَ/يَقْتَتِلُ","combattre les uns, contre les autres","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890334_200105_1717_54.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "تَرَقَّبَ/يَتَرَقَّبُ","attendre, guetter","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890335_200105_1718_01.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"
 "تَشاوَرَ/يَتَشاوَرُ","délibérer, se concerter","[sound:qissas-an-nabiyin-4eme-annee_1345340c_129890336_200105_1718_07.mp3]","Qissas_an-nabiyîn_(4ème_année)::03_Tableau_92-94"

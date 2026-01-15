@@ -6,6 +6,8 @@ Application web pour gérer, vérifier et modifier les entrées de vocabulaire d
 
 - **Groupement par tableau** - Organisation des mots par tableaux de vocabulaire
 - **Navigation intuitive** - Parcourir tableau par tableau avec indicateurs de progression
+- **🔥 Mode Rapide (Tinder)** - Vérification ultra-rapide mot par mot avec navigation au clavier
+- **⌨️ Clavier arabe virtuel** - Clavier complet avec lettres, diacritiques et caractères spéciaux
 - **Système de suivi** - Marquer les mots et tableaux comme vérifiés
 - **Lecture audio** - Écouter la prononciation des mots arabes
 - **Régénération audio** - Générer un nouveau fichier audio si la prononciation n'est pas correcte
@@ -52,7 +54,49 @@ L'application sera accessible à l'adresse: **http://localhost:3001**
 3. Cliquez sur "✓ Marquer tout le tableau" pour marquer tous les mots
 4. Cliquez sur "💾 Sauvegarder" pour enregistrer la progression
 
-### 3. Reprise du travail
+### 3. Mode Rapide (Tinder) 🔥
+
+Pour vérifier encore plus rapidement:
+
+1. Dans un tableau, cliquez sur **"🔥 Mode Rapide"**
+2. Interface carte par carte avec:
+   - Audio automatique pour chaque mot
+   - Mot arabe en grand format
+   - Traduction française
+3. Actions rapides:
+   - **→ (Flèche droite)** ou bouton **"✓ Valider"** - Marquer comme vérifié et passer au suivant
+   - **↓ (Flèche bas)** ou bouton **"⏭️ Passer"** - Passer sans valider
+   - **← (Flèche gauche)** ou bouton **"✏️ Modifier"** - Ouvrir le modal d'édition
+   - **Espace** ou bouton **🔊** - Réécouter l'audio
+   - Bouton **🔄** - Régénérer l'audio si incorrect
+4. À la fin, retour automatique à la vue tableau
+
+Ce mode est **2-3x plus rapide** que la vue tableau classique!
+
+### 4. Clavier Arabe Virtuel ⌨️
+
+Un clavier arabe complet apparaît automatiquement quand vous modifiez ou ajoutez un mot:
+
+**Sections du clavier:**
+- **حروف (Lettres)** - Toutes les lettres arabes (28 lettres + hamza et ses variantes)
+- **تشكيل (Diacritiques)** - Fatha (َ), Damma (ُ), Kasra (ِ), Sukun (ْ), Shadda (ّ), Tanwin (ً ٌ ٍ), Tatweel (ـ)
+- **رموز (Symboles)** - Slash (/), virgule (،), point-virgule (؛), point d'interrogation (؟), espace
+- **Actions** - ⌫ Effacer une lettre, ✕ Tout effacer
+
+**Utilisation:**
+1. Cliquez sur "Modifier" ou "Ajouter"
+2. Le clavier apparaît sous le champ arabe
+3. Cliquez sur les lettres/diacritiques pour les insérer
+4. Le curseur suit votre position dans le texte
+5. Vous pouvez aussi taper directement au clavier
+
+**Couleurs des touches:**
+- Blanc - Lettres normales
+- Jaune - Diacritiques (َ ُ ِ ْ ّ etc.)
+- Bleu - Symboles spéciaux
+- Rouge - Actions (effacer, tout effacer)
+
+### 5. Reprise du travail
 - La progression est sauvegardée dans `data/progress.json`
 - Au prochain lancement, votre avancement est restauré
 - Les tableaux vérifiés sont marqués en vert
@@ -93,6 +137,15 @@ haszzz.github.io/
 - `POST /api/audio/regenerate` - Régénérer l'audio d'un mot
 - `POST /api/progress/:filename` - Sauvegarder la progression
 - `GET /api/progress/:filename` - Récupérer la progression
+
+## Raccourcis Clavier (Mode Rapide)
+
+| Touche | Action |
+|--------|--------|
+| → | Valider le mot et passer au suivant |
+| ↓ | Passer sans valider |
+| ← | Modifier le mot |
+| Espace | Réécouter l'audio |
 
 ## Technologies
 
