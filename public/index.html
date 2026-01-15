@@ -10,15 +10,18 @@
     <div class="container">
         <header>
             <h1>Gestionnaire de Vocabulaire Arabe-Français</h1>
-            <div class="file-selector">
-                <label for="csv-select">Sélectionner un fichier CSV :</label>
-                <select id="csv-select">
-                    <option value="">-- Choisir --</option>
-                    <option value="2.csv">2.csv</option>
-                    <option value="2s.csv">2s.csv</option>
-                    <option value="3.csv">3.csv</option>
-                    <option value="4.csv">4.csv</option>
-                </select>
+            <div class="header-controls">
+                <div class="file-selector">
+                    <label for="csv-select">Sélectionner un fichier CSV :</label>
+                    <select id="csv-select">
+                        <option value="">-- Choisir --</option>
+                        <option value="2.csv">2.csv</option>
+                        <option value="2s.csv">2s.csv</option>
+                        <option value="3.csv">3.csv</option>
+                        <option value="4.csv">4.csv</option>
+                    </select>
+                </div>
+                <button id="settings-btn" class="btn btn-secondary">⚙️ Paramètres</button>
             </div>
         </header>
 
@@ -27,6 +30,15 @@
         </div>
 
         <div id="error" class="error hidden"></div>
+
+        <div id="search-section" class="search-section hidden">
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Rechercher un mot arabe ou français...">
+                <button id="search-btn" class="btn btn-primary">🔍 Rechercher</button>
+                <button id="clear-search-btn" class="btn btn-secondary">✕ Effacer</button>
+            </div>
+            <div id="search-results" class="search-results hidden"></div>
+        </div>
 
         <div id="tableaux-view" class="hidden">
             <h2>Tableaux de Vocabulaire</h2>
@@ -44,6 +56,7 @@
                     <button id="tinder-mode-btn" class="btn btn-success">🔥 Mode Rapide</button>
                     <button id="verify-all-tableau" class="btn btn-success">✓ Marquer tout le tableau</button>
                     <button id="save-changes" class="btn btn-primary">💾 Sauvegarder</button>
+                    <span id="auto-save-indicator" class="auto-save-indicator hidden">✓ Sauvegardé</span>
                 </div>
             </div>
 
@@ -63,6 +76,32 @@
             </div>
         </div>
 
+        <div id="move-word-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Déplacer le mot vers un autre tableau</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="current-word-info">
+                        <p><strong>Mot :</strong> <span id="move-word-text" class="arabic-text"></span></p>
+                        <p><strong>Traduction :</strong> <span id="move-word-french"></span></p>
+                        <p><strong>Tableau actuel :</strong> <span id="move-word-current-tableau"></span></p>
+                    </div>
+                    <div class="form-group">
+                        <label for="move-target-tableau">Déplacer vers :</label>
+                        <select id="move-target-tableau" class="form-control">
+                            <option value="">-- Choisir un tableau --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancel-move" class="btn btn-secondary">Annuler</button>
+                    <button id="confirm-move" class="btn btn-primary">Déplacer</button>
+                </div>
+            </div>
+        </div>
+
         <div id="tinder-view" class="hidden">
             <div class="tinder-header">
                 <button id="exit-tinder" class="btn btn-secondary">← Retour</button>
@@ -78,8 +117,8 @@
                         <div class="card-arabic" id="card-arabic"></div>
                         <div class="card-french" id="card-french"></div>
                         <div class="card-audio-controls">
-                            <button class="icon-btn-large" id="card-play-audio" title="Écouter (Espace)">🔊</button>
-                            <button class="icon-btn-large" id="card-regenerate-audio" title="Régénérer">🔄</button>
+                            <button class="icon-btn-large" id="card-play-audio" title="Écouter arabe + français (Espace)">🔊</button>
+                            <button class="icon-btn-large" id="card-regenerate-audio" title="Régénérer audio arabe">🔄</button>
                         </div>
                     </div>
                 </div>
@@ -98,7 +137,7 @@
 
                 <div class="keyboard-hints">
                     <span>← Modifier</span>
-                    <span>Espace: Audio</span>
+                    <span>Espace: Audio (AR + FR)</span>
                     <span>↓ Passer</span>
                     <span>→ Valider</span>
                 </div>
@@ -156,6 +195,52 @@
     </div>
 
     <audio id="audio-player" class="hidden"></audio>
+
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Paramètres Audio</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="tts-service">Service TTS :</label>
+                    <select id="tts-service" class="form-control">
+                        <option value="gtts">Google TTS (gratuit)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tts-voice">Voix Arabe :</label>
+                    <select id="tts-voice" class="form-control">
+                        <option value="ar">Arabe Standard (par défaut)</option>
+                        <option value="ar-slow">Arabe Standard (lent)</option>
+                        <option value="ar-fast">Arabe Standard (rapide)</option>
+                    </select>
+                    <small class="form-hint">La voix sera utilisée pour toutes les régénérations audio</small>
+                    <button id="test-voice-btn" class="btn btn-secondary btn-test-voice">🔊 Tester la voix</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="audio-quality">Qualité Audio :</label>
+                    <select id="audio-quality" class="form-control">
+                        <option value="standard">Standard</option>
+                        <option value="high">Haute</option>
+                    </select>
+                </div>
+
+                <div class="settings-info">
+                    <h4>ℹ️ À propos des voix</h4>
+                    <p><strong>Google TTS (gratuit)</strong> : Utilise le service gratuit de Google pour générer la voix. Qualité correcte pour l'arabe standard.</p>
+                    <p><strong>Vitesse</strong> : Vous pouvez choisir entre vitesse normale, lente (pour l'apprentissage) ou rapide.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-settings" class="btn btn-secondary">Annuler</button>
+                <button id="save-settings" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

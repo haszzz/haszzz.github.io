@@ -1,11 +1,18 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const CSVHandler = require('./utils/csvHandler');
 const AudioGenerator = require('./utils/audioGenerator');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Ensure data directory exists
+const dataDir = path.join(__dirname, 'data');
+if (!fsSync.existsSync(dataDir)) {
+    fsSync.mkdirSync(dataDir, { recursive: true });
+}
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -110,6 +117,33 @@ app.put('/api/csv/:filename/:lineNumber', async (req, res) => {
   }
 });
 
+app.post('/api/csv/:filename/swap', async (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const { lineNumber1, lineNumber2 } = req.body;
+
+    if (!CSV_FILES.includes(filename)) {
+      return res.status(404).json({ error: 'Fichier non trouvé' });
+    }
+
+    const filePath = path.join(__dirname, filename);
+    const handler = new CSVHandler(filePath);
+    await handler.read();
+
+    const success = handler.swapEntries(lineNumber1, lineNumber2);
+    if (!success) {
+      return res.status(404).json({ error: 'Impossible d\'échanger les positions' });
+    }
+
+    await handler.save();
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erreur lors de l\'échange:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/csv/:filename', async (req, res) => {
   try {
     const filename = req.params.filename;
@@ -164,16 +198,43 @@ app.delete('/api/csv/:filename/:lineNumber', async (req, res) => {
   }
 });
 
+app.post('/api/audio/test', async (req, res) => {
+  try {
+    const { settings } = req.body;
+
+    // Test phrase in Arabic
+    const testPhrase = 'السَّلامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكاتُهُ';
+
+    const audioGen = new AudioGenerator(path.join(__dirname, 'media'));
+
+    // Use a temporary folder for test audio
+    const testDir = 'test';
+    const result = await audioGen.generateArabicAudio(testPhrase, testDir, settings);
+
+    res.json({
+      success: true,
+      audioUrl: `/media/${testDir}/${result.fileName}`,
+      message: 'Audio de test généré avec succès'
+    });
+  } catch (error) {
+    console.error('Erreur lors de la génération audio de test:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 app.post('/api/audio/regenerate', async (req, res) => {
   try {
-    const { filename, lineNumber, arabicText, niveau } = req.body;
+    const { filename, lineNumber, arabicText, niveau, settings } = req.body;
 
     if (!CSV_FILES.includes(filename)) {
       return res.status(404).json({ error: 'Fichier non trouvé' });
     }
 
     const audioGen = new AudioGenerator(path.join(__dirname, 'media'));
-    const result = await audioGen.generateArabicAudio(arabicText, niveau);
+    const result = await audioGen.generateArabicAudio(arabicText, niveau, settings);
 
     const filePath = path.join(__dirname, filename);
     const handler = new CSVHandler(filePath);

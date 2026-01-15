@@ -14,7 +14,7 @@ class AudioGenerator {
     return `generated_${timestamp}_${hash}.mp3`;
   }
 
-  async generateArabicAudio(arabicText, niveau) {
+  async generateArabicAudio(arabicText, niveau, settings = {}) {
     return new Promise((resolve, reject) => {
       const cleanedText = this.cleanArabicText(arabicText);
       const fileName = this.generateFileName(cleanedText);
@@ -25,7 +25,12 @@ class AudioGenerator {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      const speech = new gtts(cleanedText, 'ar');
+      // Apply voice settings
+      const lang = settings.voice || 'ar';
+      const slow = lang === 'ar-slow';
+      const baseLang = lang.replace('-slow', '').replace('-fast', '');
+
+      const speech = new gtts(cleanedText, baseLang, slow);
 
       speech.save(outputPath, (error) => {
         if (error) {

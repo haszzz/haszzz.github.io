@@ -9,6 +9,9 @@ npm-debug.log*
 # Progress data
 data/progress.json
 
+# Test audio files
+media/test/
+
 # Logs
 *.log
 

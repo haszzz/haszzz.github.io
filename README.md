@@ -8,6 +8,7 @@ Application web pour gérer, vérifier et modifier les entrées de vocabulaire d
 - **Navigation intuitive** - Parcourir tableau par tableau avec indicateurs de progression
 - **🔥 Mode Rapide (Tinder)** - Vérification ultra-rapide mot par mot avec navigation au clavier
 - **⌨️ Clavier arabe virtuel** - Clavier complet avec lettres, diacritiques et caractères spéciaux
+- **⚙️ Paramètres vocaux** - Choix de la voix et vitesse pour la génération audio TTS
 - **Système de suivi** - Marquer les mots et tableaux comme vérifiés
 - **Lecture audio** - Écouter la prononciation des mots arabes
 - **Régénération audio** - Générer un nouveau fichier audio si la prononciation n'est pas correcte
@@ -96,11 +97,44 @@ Un clavier arabe complet apparaît automatiquement quand vous modifiez ou ajoute
 - Bleu - Symboles spéciaux
 - Rouge - Actions (effacer, tout effacer)
 
-### 5. Reprise du travail
+### 5. Paramètres Vocaux ⚙️
+
+Configurez la voix utilisée pour générer les audios:
+
+1. Cliquez sur **"⚙️ Paramètres"** dans le header
+2. Choisissez vos préférences:
+   - **Service TTS** : Google TTS (gratuit)
+   - **Voix Arabe** :
+     - Arabe Standard (par défaut) - Vitesse normale
+     - Arabe Standard (lent) - Idéal pour l'apprentissage
+     - Arabe Standard (rapide) - Pour révision rapide
+   - **Qualité Audio** : Standard ou Haute
+3. **🔊 Testez la voix** : Cliquez sur "Tester la voix" pour écouter un exemple
+   - Phrase de test : "السَّلامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكاتُهُ"
+   - L'audio se génère et se joue automatiquement
+   - Testez différentes vitesses pour trouver celle qui vous convient
+4. Cliquez sur "Enregistrer"
+
+Les paramètres sont **sauvegardés localement** dans votre navigateur et appliqués à toutes les futures régénérations audio.
+
+**Note** : Les paramètres n'affectent que les nouveaux audios générés. Les audios existants restent inchangés.
+
+### 6. Sauvegarde Automatique
+
+La progression est **sauvegardée automatiquement** après chaque validation:
+- ✓ Cocher un mot dans la vue tableau → sauvegarde auto
+- ✓ Valider un mot dans le mode Tinder → sauvegarde auto
+- ✓ Cliquer "Marquer tout le tableau" → sauvegarde auto
+- 💾 Bouton "Sauvegarder" → sauvegarde manuelle avec notification
+
+Un indicateur **"✓ Sauvegardé"** apparaît brièvement après chaque sauvegarde automatique.
+
+### 7. Reprise du travail
 - La progression est sauvegardée dans `data/progress.json`
-- Au prochain lancement, votre avancement est restauré
+- Au prochain lancement, votre avancement est restauré automatiquement
 - Les tableaux vérifiés sont marqués en vert
 - Les tableaux en cours affichent le pourcentage de progression
+- Vous pouvez arrêter et redémarrer le serveur sans perdre votre travail
 
 ## Structure du Projet
 

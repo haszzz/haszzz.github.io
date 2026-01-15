@@ -109,6 +109,13 @@ class CSVHandler {
     const index = this.entries.findIndex(e => e.lineNumber === lineNumber);
     if (index !== -1) {
       this.entries[index] = { ...this.entries[index], ...updatedData };
+
+      // If tags were updated, recalculate tableauNumber
+      if (updatedData.tags) {
+        const tableauMatch = updatedData.tags.match(/::(\d+_Tableau_[\d-]+)/);
+        this.entries[index].tableauNumber = tableauMatch ? tableauMatch[1] : 'Unknown';
+      }
+
       return this.entries[index];
     }
     return null;
@@ -156,6 +163,24 @@ class CSVHandler {
       return true;
     }
     return false;
+  }
+
+  swapEntries(lineNumber1, lineNumber2) {
+    const index1 = this.entries.findIndex(e => e.lineNumber === lineNumber1);
+    const index2 = this.entries.findIndex(e => e.lineNumber === lineNumber2);
+
+    if (index1 === -1 || index2 === -1) {
+      return false;
+    }
+
+    // Swap the entries in the array
+    [this.entries[index1], this.entries[index2]] = [this.entries[index2], this.entries[index1]];
+
+    // Update line numbers to reflect new positions
+    this.entries[index1].lineNumber = lineNumber1;
+    this.entries[index2].lineNumber = lineNumber2;
+
+    return true;
   }
 }
 

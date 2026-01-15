@@ -11,6 +11,13 @@ let tinderMode = false;
 let tinderCurrentIndex = 0;
 let tinderWords = [];
 
+// Settings
+let audioSettings = {
+    service: 'gtts',
+    voice: 'ar',
+    quality: 'standard'
+};
+
 const csvSelect = document.getElementById('csv-select');
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
@@ -28,16 +35,33 @@ const audioPlayer = document.getElementById('audio-player');
 
 const editModal = document.getElementById('edit-modal');
 const addModal = document.getElementById('add-modal');
+const settingsModal = document.getElementById('settings-modal');
+const moveWordModal = document.getElementById('move-word-modal');
 const editArabic = document.getElementById('edit-arabic');
 const editFrench = document.getElementById('edit-french');
 const addArabic = document.getElementById('add-arabic');
 const addFrench = document.getElementById('add-french');
+
+// Search elements
+const searchSection = document.getElementById('search-section');
+const searchInput = document.getElementById('search-input');
+const searchBtn = document.getElementById('search-btn');
+const clearSearchBtn = document.getElementById('clear-search-btn');
+const searchResults = document.getElementById('search-results');
+
+let currentMoveWord = null;
 
 csvSelect.addEventListener('change', handleFileSelect);
 backToTableaux.addEventListener('click', showTableauxView);
 verifyAllTableau.addEventListener('click', verifyAllWordsInTableau);
 saveChanges.addEventListener('click', saveProgress);
 tinderModeBtn.addEventListener('click', enterTinderMode);
+
+// Settings
+document.getElementById('settings-btn').addEventListener('click', openSettings);
+document.getElementById('cancel-settings').addEventListener('click', closeSettings);
+document.getElementById('save-settings').addEventListener('click', saveSettings);
+document.getElementById('test-voice-btn').addEventListener('click', testVoice);
 
 // Tinder mode event listeners
 document.getElementById('exit-tinder').addEventListener('click', exitTinderMode);
@@ -51,13 +75,33 @@ document.getElementById('card-regenerate-audio').addEventListener('click', tinde
 document.addEventListener('keydown', handleTinderKeyboard);
 
 document.querySelectorAll('.close-modal').forEach(btn => {
-    btn.addEventListener('click', closeModals);
+    btn.addEventListener('click', () => {
+        closeModals();
+        closeSettings();
+    });
 });
 
 document.getElementById('cancel-edit').addEventListener('click', closeModals);
 document.getElementById('cancel-add').addEventListener('click', closeModals);
 document.getElementById('confirm-edit').addEventListener('click', confirmEdit);
 document.getElementById('confirm-add').addEventListener('click', confirmAdd);
+
+// Move word modal
+document.getElementById('cancel-move').addEventListener('click', () => {
+    moveWordModal.classList.add('hidden');
+    currentMoveWord = null;
+});
+document.getElementById('confirm-move').addEventListener('click', confirmMoveWord);
+
+// Search
+searchBtn.addEventListener('click', performSearch);
+clearSearchBtn.addEventListener('click', clearSearch);
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch();
+});
+
+// Load settings on startup
+loadSettings();
 
 async function handleFileSelect(e) {
     const filename = e.target.value;
@@ -82,6 +126,9 @@ async function handleFileSelect(e) {
 
         const tableauxData = await fetch(`/api/csv/${filename}/tableaux`).then(r => r.json());
         tableaux = tableauxData;
+
+        // Show search section when file is loaded
+        searchSection.classList.remove('hidden');
 
         showTableauxView();
     } catch (err) {
@@ -149,6 +196,9 @@ function showWordsView(tableau) {
 
         const niveau = currentFile.replace('.csv', '');
 
+        const isFirstInTableau = tableau.words.indexOf(entry) === 0;
+        const isLastInTableau = tableau.words.indexOf(entry) === tableau.words.length - 1;
+
         row.innerHTML = `
             <td class="col-check">
                 <input type="checkbox" ${entry.verified ? 'checked' : ''}
@@ -170,6 +220,14 @@ function showWordsView(tableau) {
             </td>
             <td class="col-actions">
                 <div class="action-buttons">
+                    <div class="position-controls">
+                        <button class="btn-icon" onclick="moveWordUp(${entry.lineNumber})" ${isFirstInTableau ? 'disabled' : ''} title="Monter">
+                            ↑
+                        </button>
+                        <button class="btn-icon" onclick="moveWordDown(${entry.lineNumber})" ${isLastInTableau ? 'disabled' : ''} title="Descendre">
+                            ↓
+                        </button>
+                    </div>
                     <button class="btn btn-small btn-primary" onclick="editEntry(${entry.lineNumber})">
                         Modifier
                     </button>
@@ -199,6 +257,9 @@ function toggleVerified(lineNumber) {
         }
 
         updateTableauStats();
+
+        // Auto-save progress
+        saveProgressSilently();
     }
 }
 
@@ -214,6 +275,9 @@ function verifyAllWordsInTableau() {
 
     showWordsView(currentTableau);
     updateTableauStats();
+
+    // Auto-save progress
+    saveProgressSilently();
 }
 
 function updateTableauStats() {
@@ -245,6 +309,38 @@ async function saveProgress() {
     }
 }
 
+async function saveProgressSilently() {
+    if (!currentFile) return;
+
+    try {
+        await fetch(`/api/progress/${currentFile}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ verifiedWords })
+        });
+
+        // Show auto-save indicator
+        showAutoSaveIndicator();
+    } catch (err) {
+        console.error('Erreur lors de la sauvegarde automatique:', err);
+    }
+}
+
+function showAutoSaveIndicator() {
+    const indicator = document.getElementById('auto-save-indicator');
+    if (!indicator) return;
+
+    indicator.classList.remove('hidden');
+    indicator.classList.add('show');
+
+    setTimeout(() => {
+        indicator.classList.remove('show');
+        setTimeout(() => {
+            indicator.classList.add('hidden');
+        }, 300);
+    }, 2000);
+}
+
 function playAudio(niveau, audioFile) {
     audioPlayer.src = `/media/${niveau}/${audioFile}`;
     audioPlayer.play();
@@ -263,7 +359,8 @@ async function regenerateAudio(lineNumber, arabicText, niveau) {
                 filename: currentFile,
                 lineNumber,
                 arabicText,
-                niveau
+                niveau,
+                settings: audioSettings
             })
         });
 
@@ -482,8 +579,16 @@ function hideError() {
 function enterTinderMode() {
     if (!currentTableau || !currentTableau.words.length) return;
 
+    // Filter only unverified words
+    const unverifiedWords = currentTableau.words.filter(word => !word.verified);
+
+    if (unverifiedWords.length === 0) {
+        alert('Tous les mots de ce tableau sont déjà vérifiés!');
+        return;
+    }
+
     tinderMode = true;
-    tinderWords = [...currentTableau.words];
+    tinderWords = [...unverifiedWords];
     tinderCurrentIndex = 0;
 
     wordsView.classList.add('hidden');
@@ -495,6 +600,11 @@ function enterTinderMode() {
 }
 
 function exitTinderMode() {
+    // Stop any ongoing speech
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+
     tinderMode = false;
     tinderView.classList.add('hidden');
 
@@ -522,14 +632,40 @@ function showTinderCard() {
     const card = document.getElementById('tinder-card');
     card.classList.remove('swipe-left', 'swipe-right');
 
-    // Auto-play audio
+    // Auto-play audio: Arabic first, then French
     setTimeout(() => {
         playAudio(niveau, word.audio);
+
+        // Play French after Arabic audio finishes
+        audioPlayer.onended = () => {
+            speakFrench(word.french);
+            audioPlayer.onended = null; // Reset handler
+        };
     }, 300);
+}
+
+function speakFrench(text) {
+    if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'fr-FR';
+        utterance.rate = 0.9; // Slightly slower for clarity
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        window.speechSynthesis.speak(utterance);
+    }
 }
 
 function tinderAccept() {
     const word = tinderWords[tinderCurrentIndex];
+
+    // Stop any ongoing speech
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
 
     // Mark as verified
     word.verified = true;
@@ -543,6 +679,9 @@ function tinderAccept() {
         entry.verified = true;
     }
 
+    // Auto-save progress
+    saveProgressSilently();
+
     // Animate card
     const card = document.getElementById('tinder-card');
     card.classList.add('swipe-right');
@@ -554,6 +693,11 @@ function tinderAccept() {
 }
 
 function tinderSkip() {
+    // Stop any ongoing speech
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+
     // Don't mark as verified, just skip
     const card = document.getElementById('tinder-card');
     card.classList.add('swipe-right');
@@ -565,6 +709,11 @@ function tinderSkip() {
 }
 
 function tinderEdit() {
+    // Stop any ongoing speech
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+
     const word = tinderWords[tinderCurrentIndex];
     currentEditingLine = word.lineNumber;
 
@@ -577,7 +726,14 @@ function tinderEdit() {
 function tinderPlayAudio() {
     const word = tinderWords[tinderCurrentIndex];
     const niveau = currentFile.replace('.csv', '');
+
     playAudio(niveau, word.audio);
+
+    // Play French after Arabic audio finishes
+    audioPlayer.onended = () => {
+        speakFrench(word.french);
+        audioPlayer.onended = null;
+    };
 }
 
 async function tinderRegenerateAudio() {
@@ -596,7 +752,8 @@ async function tinderRegenerateAudio() {
                 filename: currentFile,
                 lineNumber: word.lineNumber,
                 arabicText: word.arabic,
-                niveau
+                niveau,
+                settings: audioSettings
             })
         });
 
@@ -612,6 +769,12 @@ async function tinderRegenerateAudio() {
 
             setTimeout(() => {
                 playAudio(niveau, result.audioFile);
+
+                // Play French after Arabic audio finishes
+                audioPlayer.onended = () => {
+                    speakFrench(word.french);
+                    audioPlayer.onended = null;
+                };
             }, 300);
         }
     } catch (err) {
@@ -827,3 +990,356 @@ tinderEdit = function() {
         createArabicKeyboard('arabic-keyboard', 'edit-arabic');
     }, 50);
 };
+
+// ===== SETTINGS MANAGEMENT =====
+
+function loadSettings() {
+    const saved = localStorage.getItem('audioSettings');
+    if (saved) {
+        try {
+            audioSettings = JSON.parse(saved);
+        } catch (e) {
+            console.error('Error loading settings:', e);
+        }
+    }
+}
+
+function openSettings() {
+    document.getElementById('tts-service').value = audioSettings.service;
+    document.getElementById('tts-voice').value = audioSettings.voice;
+    document.getElementById('audio-quality').value = audioSettings.quality;
+
+    settingsModal.classList.remove('hidden');
+}
+
+function closeSettings() {
+    settingsModal.classList.add('hidden');
+}
+
+function saveSettings() {
+    audioSettings.service = document.getElementById('tts-service').value;
+    audioSettings.voice = document.getElementById('tts-voice').value;
+    audioSettings.quality = document.getElementById('audio-quality').value;
+
+    localStorage.setItem('audioSettings', JSON.stringify(audioSettings));
+
+    closeSettings();
+    alert('Paramètres audio sauvegardés! Les prochaines régénérations utiliseront ces paramètres.');
+}
+
+async function testVoice() {
+    const btn = document.getElementById('test-voice-btn');
+    const originalText = btn.textContent;
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Génération...';
+
+    try {
+        // Get current settings from UI
+        const testSettings = {
+            service: document.getElementById('tts-service').value,
+            voice: document.getElementById('tts-voice').value,
+            quality: document.getElementById('audio-quality').value
+        };
+
+        const response = await fetch('/api/audio/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                settings: testSettings
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Play the test audio
+            audioPlayer.src = result.audioUrl;
+            await audioPlayer.play();
+
+            btn.textContent = '✓ Test terminé';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        } else {
+            throw new Error(result.error || 'Erreur lors de la génération');
+        }
+    } catch (err) {
+        showError(`Erreur lors du test audio: ${err.message}`);
+        btn.textContent = originalText;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// ===== MOVE WORD POSITION (UP/DOWN) =====
+
+async function moveWordUp(lineNumber) {
+    if (!currentTableau) return;
+
+    const currentIndex = currentTableau.words.findIndex(w => w.lineNumber === lineNumber);
+    if (currentIndex <= 0) return; // Already at the top
+
+    const currentWord = currentTableau.words[currentIndex];
+    const previousWord = currentTableau.words[currentIndex - 1];
+
+    try {
+        showLoading(true);
+
+        // Swap positions in the CSV file
+        const response = await fetch(`/api/csv/${currentFile}/swap`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                lineNumber1: previousWord.lineNumber,
+                lineNumber2: currentWord.lineNumber
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erreur lors du déplacement');
+        }
+
+        // Reload data to reflect changes
+        await reloadCurrentTableau();
+    } catch (err) {
+        showError(`Erreur lors du déplacement: ${err.message}`);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function moveWordDown(lineNumber) {
+    if (!currentTableau) return;
+
+    const currentIndex = currentTableau.words.findIndex(w => w.lineNumber === lineNumber);
+    if (currentIndex < 0 || currentIndex >= currentTableau.words.length - 1) return; // Already at the bottom
+
+    const currentWord = currentTableau.words[currentIndex];
+    const nextWord = currentTableau.words[currentIndex + 1];
+
+    try {
+        showLoading(true);
+
+        // Swap positions in the CSV file
+        const response = await fetch(`/api/csv/${currentFile}/swap`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                lineNumber1: currentWord.lineNumber,
+                lineNumber2: nextWord.lineNumber
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erreur lors du déplacement');
+        }
+
+        // Reload data to reflect changes
+        await reloadCurrentTableau();
+    } catch (err) {
+        showError(`Erreur lors du déplacement: ${err.message}`);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function reloadCurrentTableau() {
+    const tableauId = currentTableau.tableau;
+
+    const [entriesData, tableauxData] = await Promise.all([
+        fetch(`/api/csv/${currentFile}`).then(r => r.json()),
+        fetch(`/api/csv/${currentFile}/tableaux`).then(r => r.json())
+    ]);
+
+    allEntries = entriesData.entries;
+    allEntries.forEach(entry => {
+        entry.verified = verifiedWords.includes(entry.lineNumber);
+    });
+    tableaux = tableauxData;
+
+    currentTableau = tableaux.find(t => t.tableau === tableauId);
+    if (currentTableau) {
+        showWordsView(currentTableau);
+    }
+}
+
+// ===== SEARCH AND MOVE WORD FUNCTIONALITY =====
+
+function performSearch() {
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        alert('Veuillez entrer un mot à rechercher');
+        return;
+    }
+
+    // Search through all entries for Arabic or French matches
+    const results = allEntries.filter(entry => {
+        const arabicMatch = entry.arabic.toLowerCase().includes(query.toLowerCase());
+        const frenchMatch = entry.french.toLowerCase().includes(query.toLowerCase());
+        return arabicMatch || frenchMatch;
+    });
+
+    displaySearchResults(results);
+}
+
+function displaySearchResults(results) {
+    searchResults.innerHTML = '';
+
+    if (results.length === 0) {
+        searchResults.innerHTML = '<p class="search-no-results">Aucun résultat trouvé</p>';
+        searchResults.classList.remove('hidden');
+        return;
+    }
+
+    const resultCount = document.createElement('p');
+    resultCount.style.marginBottom = '15px';
+    resultCount.style.fontWeight = '600';
+    resultCount.textContent = `${results.length} résultat(s) trouvé(s)`;
+    searchResults.appendChild(resultCount);
+
+    results.forEach(entry => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+
+        const wordInfo = document.createElement('div');
+        wordInfo.className = 'search-result-content';
+        wordInfo.innerHTML = `
+            <div class="search-result-arabic">${entry.arabic}</div>
+            <div class="search-result-french">${entry.french}</div>
+            <div class="search-result-tableau">Tableau: ${entry.tableauNumber}</div>
+        `;
+
+        const actions = document.createElement('div');
+        actions.className = 'search-result-actions';
+
+        const moveBtn = document.createElement('button');
+        moveBtn.className = 'btn btn-primary btn-small';
+        moveBtn.textContent = '↔️ Déplacer';
+        moveBtn.onclick = () => openMoveWordModal(entry.lineNumber);
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-secondary btn-small';
+        editBtn.textContent = '✏️ Modifier';
+        editBtn.onclick = () => {
+            editEntry(entry.lineNumber);
+        };
+
+        actions.appendChild(moveBtn);
+        actions.appendChild(editBtn);
+
+        resultItem.appendChild(wordInfo);
+        resultItem.appendChild(actions);
+
+        searchResults.appendChild(resultItem);
+    });
+
+    searchResults.classList.remove('hidden');
+}
+
+function clearSearch() {
+    searchInput.value = '';
+    searchResults.innerHTML = '';
+    searchResults.classList.add('hidden');
+}
+
+function openMoveWordModal(lineNumber) {
+    const entry = allEntries.find(e => e.lineNumber === lineNumber);
+    if (!entry) return;
+
+    currentMoveWord = entry;
+
+    // Populate modal with word info
+    document.getElementById('move-word-text').textContent = entry.arabic;
+    document.getElementById('move-word-french').textContent = entry.french;
+    document.getElementById('move-word-current-tableau').textContent = entry.tableauNumber;
+
+    // Populate tableau dropdown
+    const targetSelect = document.getElementById('move-target-tableau');
+    targetSelect.innerHTML = '<option value="">-- Choisir un tableau --</option>';
+
+    tableaux.forEach(tableau => {
+        // Don't include the current tableau in the list
+        if (tableau.tableau !== entry.tableauNumber) {
+            const option = document.createElement('option');
+            option.value = tableau.tableau;
+            option.textContent = `Tableau ${tableau.tableau}`;
+            targetSelect.appendChild(option);
+        }
+    });
+
+    moveWordModal.classList.remove('hidden');
+}
+
+async function confirmMoveWord() {
+    if (!currentMoveWord) return;
+
+    const targetTableau = document.getElementById('move-target-tableau').value;
+
+    if (!targetTableau) {
+        alert('Veuillez sélectionner un tableau de destination');
+        return;
+    }
+
+    showLoading(true);
+
+    try {
+        // Get the old tags and construct new tags with the new tableau number
+        const oldTags = currentMoveWord.tags;
+        // Replace the tableau number in the tags
+        // Format: "Book_name::XX_Tableau_YYY-ZZZ"
+        const newTags = oldTags.replace(/::(\d+_Tableau_[\d-]+)/, `::${targetTableau}`);
+
+        // Update the entry via API
+        const response = await fetch(`/api/csv/${currentFile}/${currentMoveWord.lineNumber}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                arabic: currentMoveWord.arabic,
+                french: currentMoveWord.french,
+                tags: newTags
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erreur lors de la mise à jour');
+        }
+
+        // Reload all data to reflect the change
+        const [entriesData, tableauxData] = await Promise.all([
+            fetch(`/api/csv/${currentFile}`).then(r => r.json()),
+            fetch(`/api/csv/${currentFile}/tableaux`).then(r => r.json())
+        ]);
+
+        allEntries = entriesData.entries;
+        allEntries.forEach(entry => {
+            entry.verified = verifiedWords.includes(entry.lineNumber);
+        });
+        tableaux = tableauxData;
+
+        // Close modal and clear search
+        moveWordModal.classList.add('hidden');
+        currentMoveWord = null;
+
+        // Refresh search results if there are any
+        if (!searchResults.classList.contains('hidden')) {
+            performSearch();
+        }
+
+        // If we're in a tableau view, refresh it
+        if (currentTableau) {
+            const tableauId = currentTableau.tableau;
+            currentTableau = tableaux.find(t => t.tableau === tableauId);
+            if (currentTableau && !wordsView.classList.contains('hidden')) {
+                showWordsView(currentTableau);
+            }
+        }
+
+        alert(`Mot déplacé avec succès vers le Tableau ${targetTableau}!`);
+    } catch (err) {
+        showError(`Erreur lors du déplacement: ${err.message}`);
+    } finally {
+        showLoading(false);
+    }
+}
