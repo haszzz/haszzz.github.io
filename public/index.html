@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Vocabulaire Arabe-Français</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gestionnaire de Vocabulaire Arabe-Français</h1>
+            <div class="file-selector">
+                <label for="csv-select">Sélectionner un fichier CSV :</label>
+                <select id="csv-select">
+                    <option value="">-- Choisir --</option>
+                    <option value="2.csv">2.csv</option>
+                    <option value="2s.csv">2s.csv</option>
+                    <option value="3.csv">3.csv</option>
+                    <option value="4.csv">4.csv</option>
+                </select>
+            </div>
+        </header>
+
+        <div id="loading" class="loading hidden">
+            <p>Chargement...</p>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+
+        <div id="tableaux-view" class="hidden">
+            <h2>Tableaux de Vocabulaire</h2>
+            <div class="progress-summary">
+                <p id="overall-progress"></p>
+            </div>
+            <div id="tableaux-list" class="tableaux-list"></div>
+        </div>
+
+        <div id="words-view" class="hidden">
+            <div class="view-header">
+                <button id="back-to-tableaux" class="btn btn-secondary">← Retour aux tableaux</button>
+                <h2 id="tableau-title"></h2>
+                <div class="tableau-actions">
+                    <button id="verify-all-tableau" class="btn btn-success">✓ Marquer tout le tableau</button>
+                    <button id="save-changes" class="btn btn-primary">💾 Sauvegarder</button>
+                </div>
+            </div>
+
+            <div class="words-table-container">
+                <table id="words-table">
+                    <thead>
+                        <tr>
+                            <th class="col-check">✓</th>
+                            <th class="col-arabic">Arabe</th>
+                            <th class="col-french">Français</th>
+                            <th class="col-audio">Audio</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="words-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Modifier l'entrée</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-arabic">Arabe :</label>
+                    <input type="text" id="edit-arabic" dir="rtl" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-french">Français :</label>
+                    <input type="text" id="edit-french" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-edit" class="btn btn-secondary">Annuler</button>
+                <button id="confirm-edit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ajouter un nouveau mot</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="add-arabic">Arabe :</label>
+                    <input type="text" id="add-arabic" dir="rtl" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="add-french">Français :</label>
+                    <input type="text" id="add-french" class="form-control">
+                </div>
+                <p class="info-text">Le mot sera inséré après la ligne sélectionnée.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-add" class="btn btn-secondary">Annuler</button>
+                <button id="confirm-add" class="btn btn-primary">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player" class="hidden"></audio>
+
+    <script src="app.js"></script>
+</body>
+</html>

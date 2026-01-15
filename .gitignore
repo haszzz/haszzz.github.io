@@ -1,0 +1,23 @@
+.osgrep
+media/
+
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# Progress data
+data/progress.json
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
