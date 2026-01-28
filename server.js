@@ -8,6 +8,9 @@ const AudioGenerator = require('./utils/audioGenerator');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Media directory path - use the real memrise-clone media folder
+const MEDIA_DIR = '/Users/hassan/projet/memrise-clone/public/courses/media';
+
 // Ensure data directory exists
 const dataDir = path.join(__dirname, 'data');
 if (!fsSync.existsSync(dataDir)) {
@@ -16,7 +19,7 @@ if (!fsSync.existsSync(dataDir)) {
 
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/media', express.static('media'));
+app.use('/media', express.static(MEDIA_DIR));
 
 const PROGRESS_FILE = path.join(__dirname, 'data', 'progress.json');
 const CSV_FILES = ['2.csv', '2s.csv', '3.csv', '4.csv'];
@@ -205,7 +208,7 @@ app.post('/api/audio/test', async (req, res) => {
     // Test phrase in Arabic
     const testPhrase = 'السَّلامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكاتُهُ';
 
-    const audioGen = new AudioGenerator(path.join(__dirname, 'media'));
+    const audioGen = new AudioGenerator(MEDIA_DIR);
 
     // Use a temporary folder for test audio
     const testDir = 'test';
@@ -233,7 +236,7 @@ app.post('/api/audio/regenerate', async (req, res) => {
       return res.status(404).json({ error: 'Fichier non trouvé' });
     }
 
-    const audioGen = new AudioGenerator(path.join(__dirname, 'media'));
+    const audioGen = new AudioGenerator(MEDIA_DIR);
     const result = await audioGen.generateArabicAudio(arabicText, niveau, settings);
 
     const filePath = path.join(__dirname, filename);
@@ -298,5 +301,16 @@ app.get('/api/progress/:filename', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`\nServeur démarré sur http://localhost:${PORT}`);
   console.log(`Fichiers CSV disponibles: ${CSV_FILES.join(', ')}`);
+  console.log(`Dossier media: ${MEDIA_DIR}`);
+
+  // Check if media directory exists
+  if (!fsSync.existsSync(MEDIA_DIR)) {
+    console.log(`⚠️  ATTENTION: Le dossier media n'existe pas! Création en cours...`);
+    fsSync.mkdirSync(MEDIA_DIR, { recursive: true });
+    console.log(`✓ Dossier media créé: ${MEDIA_DIR}`);
+  } else {
+    console.log(`✓ Dossier media trouvé`);
+  }
+
   console.log(`\nOuvrez votre navigateur à l'adresse ci-dessus pour commencer.\n`);
 });
